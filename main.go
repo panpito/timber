@@ -16,19 +16,27 @@ func main() {
 		},
 	}
 
+	b3 := Branch{
+		label: "branch3",
+		components: []timber_interface.NodeTree{
+			Leaf{label: "l7"},
+		},
+	}
+
 	b2 := Branch{
-		label: "branch1",
+		label: "branch2",
 		components: []timber_interface.NodeTree{
 			Leaf{label: "l4"},
 			Leaf{label: "l5"},
 			Leaf{label: "l6"},
+			b3,
 		},
 	}
 
 	b0 := Branch{
 		label: "branch0",
 		components: []timber_interface.NodeTree{
-			l0, l1, b1, b2,
+			l0, l1, b1, b2, Leaf{label: "l8"},
 		},
 	}
 
