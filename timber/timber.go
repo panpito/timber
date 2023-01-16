@@ -3,7 +3,7 @@ package timber
 import (
 	"fmt"
 	"github.com/panpito/timber/timber/interface"
-	log "github.com/sirupsen/logrus"
+	"log"
 )
 
 // Example of ASCII tree
