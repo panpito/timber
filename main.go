@@ -40,7 +40,9 @@ func main() {
 		},
 	}
 
-	timber.Print(b0)
+	printer := timber.NewDefaultPrinter()
+
+	printer.Print(b0)
 }
 
 // For example

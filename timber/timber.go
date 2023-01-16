@@ -1,6 +1,7 @@
 package timber
 
 import (
+	"fmt"
 	"github.com/panpito/timber/timber/interface"
 	log "github.com/sirupsen/logrus"
 )
@@ -17,18 +18,60 @@ import (
 //  ├ sibling1 (root2 is the parent, and root2 is last)
 //  └ sibling2
 
-func Print(tree timber_interface.NodeTree) {
-	doPrint(tree, node{"", true})
+type PrinterFn func(display string) (interface{}, error)
+type ResultFn func(previousResult, currentItem interface{}) (interface{}, error)
+
+var DefaultPrinterFn = func(display string) (interface{}, error) {
+	log.Print(display)
+	return display, nil
 }
 
-func doPrint(tree timber_interface.NodeTree, node node) {
-	log.Print(node.display(), tree.Display())
+var DefaultResultFn = func(previousResult, currentItem interface{}) (interface{}, error) {
+	return append(previousResult.([]string), currentItem.(string)), nil
+}
+
+type customPrinter struct {
+	printerFn PrinterFn
+	result    interface{}
+	resultFn  ResultFn
+}
+
+func NewCustomPrinter(printerFn PrinterFn, result interface{}, resultFn ResultFn) *customPrinter {
+	return &customPrinter{printerFn: printerFn, result: result, resultFn: resultFn}
+}
+
+func NewDefaultPrinter() *customPrinter {
+	return &customPrinter{printerFn: DefaultPrinterFn, result: make([]string, 0), resultFn: DefaultResultFn}
+}
+
+func (printer *customPrinter) Print(tree timber_interface.NodeTree) (interface{}, error) {
+	if err := printer.doPrint(tree, node{"", true}); err != nil {
+		return nil, err
+	}
+
+	return printer.result, nil
+}
+
+func (printer *customPrinter) doPrint(tree timber_interface.NodeTree, node node) error {
+	display := fmt.Sprint(node.display(), tree.Display())
+	displayResult, errPrint := printer.printerFn(display)
+	if errPrint != nil {
+		return errPrint
+	}
+
+	updatedResult, errResult := printer.resultFn(printer.result, displayResult)
+	if errResult != nil {
+		return errResult
+	}
+	printer.result = updatedResult
 
 	length := len(tree.Components())
 	for idx, child := range tree.Components() {
 		isLast := idx == length-1
-		doPrint(child, node.createChildNode(isLast))
+		printer.doPrint(child, node.createChildNode(isLast))
 	}
+
+	return nil
 }
 
 // node
